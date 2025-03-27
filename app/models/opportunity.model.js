@@ -22,6 +22,8 @@ const Opportunitymodel = new mongoose.Schema({
   organization: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Organization",
+    //later remove this Organization ..and ref to user or it matches
+
     required: true,
   },
 
