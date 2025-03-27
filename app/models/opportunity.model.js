@@ -58,7 +58,7 @@ const opportunitySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["Posted", "Closed", "Completed"],
+    enum: ["Posted", "Closed", "Completed","Pending"],
     default: "Posted",
   },
   createdAt: {
