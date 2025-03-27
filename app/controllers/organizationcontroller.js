@@ -1,19 +1,16 @@
-import { opportunityschema } from "../models/opportunity.model.js";
+import { Opportunity } from "../models/opportunity.model.js";
 
 export const getOpportunitiesByOrganization = async (req, res) => {
   try {
     const { itemsPerPage, pageNumber } = req.query;
-    
+
     //later remove this id just for testing purpose
 
-    const orgId = "65a123456789abc123456789"||  req.id  ;
-
+    const orgId = "65a123456789abc123456789" || req.id;
     const limit = parseInt(itemsPerPage);
     const skip = (parseInt(pageNumber) - 1) * limit;
 
-    
-    const opportunities = await opportunityschema
-    .find({ organization: orgId })
+    const opportunities = await Opportunity.find({ organization: orgId })
       .skip(skip)
       .limit(limit);
 
@@ -56,16 +53,14 @@ export const updateOpportunity = async (req, res) => {
     const allowedStatuses = ["Posted", "Closed", "Completed"];
 
     if (req.body.status && !allowedStatuses.includes(req.body.status)) {
-      return res
-        .status(400)
-        .json({
-          message: `Invalid status. Allowed values are: ${allowedStatuses.join(
-            ", "
-          )}`,
-        });
+      return res.status(400).json({
+        message: `Invalid status. Allowed values are: ${allowedStatuses.join(
+          ", "
+        )}`,
+      });
     }
 
-    const updatedOpportunity = await opportunityschema.findByIdAndUpdate(
+    const updatedOpportunity = await Opportunity.findByIdAndUpdate(
       id,
       req.body,
       { new: true }
@@ -85,7 +80,7 @@ export const deleteOpportunity = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedOpportunity = await opportunityschema.findByIdAndDelete(id);
+    const deletedOpportunity = await Opportunity.findByIdAndDelete(id);
 
     if (!deletedOpportunity) {
       return res.status(404).json({ message: "Opportunity not found" });
@@ -113,7 +108,7 @@ export const postOpportunity = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const newOpportunity = new opportunityschema({
+    const newOpportunity = new Opportunity({
       title,
       description,
       date,
@@ -129,13 +124,84 @@ export const postOpportunity = async (req, res) => {
     // Save to database
     await newOpportunity.save();
 
-    res
-      .status(201)
-      .json({
-        message: "Opportunity posted successfully",
-        opportunity: newOpportunity,
-      });
+    res.status(201).json({
+      message: "Opportunity posted successfully",
+      opportunity: newOpportunity,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error posting opportunity", error });
+  }
+};
+
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { opportunityId, volunteerId, status } = req.body;
+
+    const validStatuses = ["Pending", "Accepted", "Rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid application status" });
+    }
+
+    const updatedOpportunity = await Opportunity.findOneAndUpdate(
+      {
+        _id: opportunityId,
+        "volunteerApplications.volunteer": volunteerId,
+      },
+      {
+        $set: {
+          "volunteerApplications.$.applicationStatus": status,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedOpportunity) {
+      return res
+        .status(404)
+        .json({ message: "Opportunity or application not found" });
+    }
+
+    res.status(200).json({
+      message: "Application status updated successfully",
+      updatedOpportunity,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating application status", error });
+  }
+};
+
+export const getApplicationsByOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const opportunity = await Opportunity.findById(id)
+      .populate("volunteerApplications")
+      .populate("volunteerApplications.volunteer");
+
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    res.status(200).json(opportunity.volunteerApplications);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching applications", error });
+  }
+};
+
+export const getAllApplications = async (req, res) => {
+  try {
+    const opportunity = await Opportunity.find({})
+      .populate("volunteerApplications")
+      .populate("volunteerApplications.volunteer");
+
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    res.status(200).json(opportunity.volunteerApplications);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching applications", error });
   }
 };

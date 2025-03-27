@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const Opportunitymodel = new mongoose.Schema({
+const opportunitySchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -14,6 +14,11 @@ const Opportunitymodel = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  time: {
+    type: String,
+    required: true,
+  }
+,  
   numberOfVolunteers: {
     type: Number,
     required: true,
@@ -21,11 +26,31 @@ const Opportunitymodel = new mongoose.Schema({
   },
   organization: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Organization",
-    //later remove this Organization ..and ref to user or it matches
+    ref: "User",
+    //later remove this User ..and ref it matches
 
     required: true,
   },
+
+  volunteerApplications: [
+    {
+      volunteer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", 
+    //later remove this User ..and ref it matches
+
+      },
+      applicationStatus: {
+        type: String,
+        enum: ["Pending", "Accepted", "Rejected"],
+        default: "Pending",
+      },
+      appliedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 
   location: {
     type: String,
@@ -42,7 +67,4 @@ const Opportunitymodel = new mongoose.Schema({
   },
 });
 
-export const opportunityschema = mongoose.model(
-  "opportunityschema",
-  Opportunitymodel
-);
+export const Opportunity = mongoose.model("Opportunity", opportunitySchema);
