@@ -26,35 +26,24 @@ const opportunitySchema = new mongoose.Schema(
     },
     organization: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Change "User" later if needed
+      ref: "Organization",
+      // Change "User" later if needed
       required: true,
     },
-    volunteerApplications: [
-      {
-        volunteer: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User", // Change "User" later if needed
-          required: true,
-        },
-        applicationStatus: {
-          type: String,
-          enum: ["Pending", "Accepted", "Rejected"],
-          default: "Pending",
-        },
-        appliedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     location: {
       type: String,
       required: true,
     },
     status: {
       type: String,
-      enum: ["Posted", "Closed", "Completed", "Pending"],
-      default: "Posted",
+      enum: ["Open", "Completed","Working","Cancelled" ],
+      default: "Open",
+    },
+    category:{
+      type:String
+    },
+    skills: {
+      type: [String], // ✅ Corrected syntax
     },
   },
   { timestamps: true }
